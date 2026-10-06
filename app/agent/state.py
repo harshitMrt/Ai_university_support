@@ -18,6 +18,7 @@ class AgentState(TypedDict):
     course_code: Optional[str]
     exam_type: Optional[str]
     student_record: Optional[Dict[str, Any]]
+    top_k: Optional[int]
 
     # Retrieval & Precedence
     retrieved_chunks: List[Dict[str, Any]]

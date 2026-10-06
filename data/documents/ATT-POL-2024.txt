@@ -1,0 +1,24 @@
+================================================================================
+COMPREHENSIVE STUDENT ATTENDANCE POLICY (v2.0)
+Document ID: ATT-POL-2024
+Authority Level: 2 (Official Circulars / Office Orders)
+Issuer: Office of Dean Academic Affairs
+Effective Date: 2024-07-01
+Supersedes: ATT-POL-2020
+Scope: All University Students
+================================================================================
+
+SECTION 1: PURPOSE AND OBJECTIVE
+1.1 This policy provides procedural guidelines for monitoring, recording, and condoning student attendance across all schools and departments.
+
+SECTION 2: ATTENDANCE MONITORING & THRESHOLDS
+2.1 Mandatory Threshold: A student must achieve an aggregate attendance of at least 75.0% in each registered theory, tutorial, and laboratory course.
+2.2 Real-time Calculation: Attendance percentage is deterministically calculated as:
+(Classes Attended / Classes Held) * 100
+Rounded to two decimal places.
+2.3 Warning Notices: Faculty advisors shall issue formal warning letters to students whose attendance drops below 80.0% at the mid-semester appraisal.
+2.4 Debarment Notification: Students whose final attendance falls below 75.0% will be officially notified on the portal and debarred from the end-semester examination.
+
+SECTION 3: APPROVED LEAVES AND CONDONATION PROCEDURES
+3.1 Medical Leave: Medical leaves covering hospitalizations or infectious diseases must be registered via the student ERP within 7 days of returning to campus.
+3.2 Institutional Duty Leave: Students representing the university in inter-university sports, cultural meets, or hackathons are eligible for up to 5 days of duty attendance credit, subject to prior Dean approval.

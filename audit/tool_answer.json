@@ -1,0 +1,31 @@
+{
+  "timestamp": "2026-10-06T11:42:31.054037+00:00",
+  "question": "What is my attendance in CS201?",
+  "student_id": "S1001",
+  "decision": "INVOKE_STUDENT_DATA_TOOL",
+  "answer_type": "calculated",
+  "retrieved_sources": [
+    "ATT-POL-2024"
+  ],
+  "tool_calls": [
+    "get_student",
+    "get_attendance",
+    "get_result",
+    "get_course"
+  ],
+  "answer": "Your current attendance in **CS201** (Data Structures and Algorithms) is **75.0%** (30 classes attended out of 40 held). Status: **Satisfactory** (Mandatory threshold is 75.0%).\n\nYour examination result in **CS201** (Dec 2023): Internal: 32.0/40, External: 46.0/60, Total: **78.0/100.0**, Result: **PASS**.",
+  "citations": [
+    {
+      "title": "Comprehensive Student Attendance Policy v2.0",
+      "doc_id": "ATT-POL-2024",
+      "section": "Section 2.1 & 2.2",
+      "page": 1,
+      "version": "2.0",
+      "effective_date": "2024-07-01",
+      "authority_level": 2
+    }
+  ],
+  "latency_ms": 18.1,
+  "model": "gemma3:270m",
+  "evaluation_status": "PASS"
+}

@@ -1,20 +1,30 @@
 """
 Authoritative Source Precedence and Conflict Resolution Module.
-Implements the exact hierarchy and resolution rules:
-Authority Levels:
-1 = Statutes, Ordinances, Academic Regulations (Highest)
-2 = Official circulars, Notifications, Authorised office documents
-3 = Department notices
-4 = Handbooks, FAQs
-5 = Unofficial content (Untrusted)
 
-Resolution Rules:
-1. Prefer documents that are currently effective.
-2. Prefer documents whose scope matches the student/program/batch.
-3. An explicit supersession relationship overrides an older document.
-4. Higher authority overrides lower authority (lower numerical authority_level).
-5. More recent effective document wins when authority is otherwise equal.
-6. If conflict cannot be safely resolved, return conflict_status = True ("conflict_flagged").
+Background & Motivation:
+------------------------
+In a university environment, different offices issue regulations with varying authority,
+effective periods, and departmental scopes. A standard vector-similarity search alone
+often retrieves outdated circulars or informal forum advice that contradicts official
+academic council statutes.
+
+This module implements deterministic institutional precedence rules:
+1. Authority Levels:
+   - Level 1: Statutes, Ordinances, Academic Council Regulations (Highest)
+   - Level 2: Official circulars, Dean/Registrar Notifications
+   - Level 3: Department notices (e.g., Computer Science Lab guidelines)
+   - Level 4: Handbooks, Orientation FAQs
+   - Level 5: Unofficial content (Student forums, Reddit/Discord chatter) -> UNTRUSTED
+
+2. Precedence Hierarchy & Conflict Resolution Algorithm:
+   - Step 1: Filter out expired or not-yet-effective policies based on query date (`as_of_date`).
+   - Step 2: Enforce explicit supersession (e.g. ACAD-REG-2024 supersedes ACAD-REG-2021).
+   - Step 3: Apply scope specialization: Specific departmental policies (e.g. B.Tech CSE)
+             take precedence over general ('ALL') regulations for students of that department.
+   - Step 4: Higher authority overrides lower authority (Level 1 > Level 2 > Level 3).
+   - Step 5: Untrusted Level 5 documents are strictly excluded from being authoritative.
+   - Step 6: If two documents of identical authority, date, and scope directly conflict,
+             flag conflict_status = True (`conflict_flagged`) rather than silently hallucinating.
 """
 
 from datetime import datetime
@@ -22,6 +32,10 @@ from typing import Any, Dict, List, Optional, Tuple
 
 
 def parse_date(date_str: Optional[str]) -> Optional[datetime]:
+    """
+    Safely parses an ISO date string (YYYY-MM-DD) into a datetime object.
+    Returns None if missing, empty, or unparseable.
+    """
     if not date_str or date_str.strip() == "":
         return None
     try:
@@ -37,13 +51,23 @@ def resolve_authoritative_sources(
     """
     Evaluates candidate documents according to authoritative source precedence.
 
-    Returns a dictionary containing:
-    - selected_source: Dict or None
-    - candidate_sources: List of remaining valid sources
-    - excluded_sources: List of excluded documents with reasons
-    - reason: Human-readable explanation of why the source was selected
-    - conflict_status: bool (True if unresolvable conflict exists)
+    Parameters:
+    -----------
+    candidate_documents : List[Dict[str, Any]]
+        List of metadata dictionaries corresponding to candidate chunks retrieved from ChromaDB.
+    student_context : Optional[Dict[str, Any]]
+        Context dictionary containing 'as_of_date', 'programme', and 'batch_year'.
+
+    Returns:
+    --------
+    Dict[str, Any]:
+        - selected_source: Dict representing the authoritative document to cite.
+        - candidate_sources: List of valid, non-excluded candidate documents.
+        - excluded_sources: List of excluded documents with explicit audit justifications.
+        - reason: Plaintext explanation of the precedence selection.
+        - conflict_status: Boolean indicating whether unresolvable conflicting policies exist.
     """
+    # Defensive check for empty candidate set
     if not candidate_documents:
         return {
             "selected_source": None,
@@ -53,6 +77,7 @@ def resolve_authoritative_sources(
             "conflict_status": False,
         }
 
+    # Extract student context and query date
     ctx = student_context or {}
     as_of_date_str = ctx.get("as_of_date", "2026-10-06")
     as_of_date = parse_date(as_of_date_str) or datetime.now()
@@ -62,21 +87,23 @@ def resolve_authoritative_sources(
     excluded_sources: List[Dict[str, Any]] = []
     active_candidates: List[Dict[str, Any]] = []
 
-    # Map for quick lookup of supersessions
+    # Map for quick lookup of superseding relationships (e.g. doc A supersedes doc B)
     superseded_doc_ids = set()
     for doc in candidate_documents:
         supersedes_target = doc.get("supersedes")
         if supersedes_target and supersedes_target.strip():
             superseded_doc_ids.add(supersedes_target.strip())
 
-    # Step 1: Filter untrusted level 5 sources if authoritative sources exist
+    # Check whether any official/trusted sources (Level 1-4) exist in candidate pool
     has_trusted = any(int(d.get("authority_level", 5)) <= 4 for d in candidate_documents)
 
     for doc in candidate_documents:
         doc_id = doc.get("doc_id", "UNKNOWN")
         auth_level = int(doc.get("authority_level", 5))
 
-        # Check untrusted level 5
+        # -------------------------------------------------------------
+        # Filter 1: Untrusted Content (Authority Level 5)
+        # -------------------------------------------------------------
         if auth_level >= 5 and has_trusted:
             excluded_sources.append({
                 "doc_id": doc_id,
@@ -86,9 +113,10 @@ def resolve_authoritative_sources(
             })
             continue
 
-        # Check explicit supersession
+        # -------------------------------------------------------------
+        # Filter 2: Explicit Supersession
+        # -------------------------------------------------------------
         if doc_id in superseded_doc_ids:
-            # Find the superseding doc
             superseding = [d for d in candidate_documents if d.get("supersedes") == doc_id]
             superseding_title = superseding[0].get("title", superseding[0].get("doc_id")) if superseding else "a newer regulation"
             excluded_sources.append({
@@ -99,10 +127,13 @@ def resolve_authoritative_sources(
             })
             continue
 
-        # Check effective dates
+        # -------------------------------------------------------------
+        # Filter 3: Temporal Validity (effective_from and effective_to)
+        # -------------------------------------------------------------
         eff_from = parse_date(doc.get("effective_from"))
         eff_to = parse_date(doc.get("effective_to"))
 
+        # Policy not yet in effect as of query timestamp
         if eff_from and eff_from > as_of_date:
             excluded_sources.append({
                 "doc_id": doc_id,
@@ -112,6 +143,7 @@ def resolve_authoritative_sources(
             })
             continue
 
+        # Policy expired prior to query timestamp
         if eff_to and eff_to < as_of_date:
             excluded_sources.append({
                 "doc_id": doc_id,
@@ -121,7 +153,9 @@ def resolve_authoritative_sources(
             })
             continue
 
-        # Check scope mismatch
+        # -------------------------------------------------------------
+        # Filter 4: Scope Compatibility (Programme & Batch)
+        # -------------------------------------------------------------
         scope_progs = doc.get("scope_programmes", "ALL")
         if student_programme and scope_progs != "ALL":
             if student_programme.lower() not in scope_progs.lower():
@@ -144,8 +178,10 @@ def resolve_authoritative_sources(
                 })
                 continue
 
+        # Candidate passed all filters
         active_candidates.append(doc)
 
+    # If all retrieved candidates failed exclusion rules
     if not active_candidates:
         return {
             "selected_source": None,
@@ -155,30 +191,39 @@ def resolve_authoritative_sources(
             "conflict_status": False,
         }
 
-    # Step 2: Sort candidates according to source precedence:
-    # 1. Authority level ascending (1 is best, 5 is worst)
-    # 2. Scope specificity (matching specific programme/batch before "ALL")
-    # 3. Effective date descending (most recently enacted document wins)
-    # 4. Version descending
+    # -----------------------------------------------------------------
+    # Step 2: Sort Candidates According to Deterministic Precedence:
+    # 1. Scope specificity (Specialized departmental rule overrides generic ALL rule)
+    # 2. Authority level ascending (1 = Highest regulation, 5 = Lowest)
+    # 3. Effective date descending (Newest active policy wins)
+    # 4. Version number descending (Higher version string wins)
+    # -----------------------------------------------------------------
     def sort_key(d: Dict[str, Any]) -> Tuple[int, int, float, float]:
         auth = int(d.get("authority_level", 5))
-        is_specific_prog = 0 if (student_programme and student_programme.lower() in d.get("scope_programmes", "").lower()) else 1
+        # Department/Programme-specific document prioritized over general 'ALL' regulation
+        is_specific_prog = 0 if (
+            student_programme
+            and d.get("scope_programmes") != "ALL"
+            and student_programme.lower() in d.get("scope_programmes", "").lower()
+        ) else 1
         eff_from = parse_date(d.get("effective_from"))
         eff_timestamp = -eff_from.timestamp() if eff_from else 0.0
         try:
             ver = -float(str(d.get("version", "1.0")).replace("v", ""))
         except ValueError:
             ver = 0.0
-        return (auth, is_specific_prog, eff_timestamp, ver)
+        return (is_specific_prog, auth, eff_timestamp, ver)
 
     active_candidates.sort(key=sort_key)
 
-    # Check for unresolvable conflict among top-level candidates
-    # If two candidates have the same highest authority, same scope, same effective date, but different doc_ids and content
+    # -----------------------------------------------------------------
+    # Step 3: Conflict Detection Across Equal Precedence Authorities
+    # -----------------------------------------------------------------
     conflict_status = False
     if len(active_candidates) > 1:
         top1 = active_candidates[0]
         top2 = active_candidates[1]
+        # Identical authority level and effective date without a declared supersession relationship
         if (
             int(top1.get("authority_level", 5)) == int(top2.get("authority_level", 5))
             and top1.get("effective_from") == top2.get("effective_from")
@@ -186,12 +231,12 @@ def resolve_authoritative_sources(
             and top1.get("supersedes") != top2.get("doc_id")
             and top2.get("supersedes") != top1.get("doc_id")
         ):
-            # Check if they have potentially conflicting values for same topic
             topic1 = top1.get("topic", top1.get("title", ""))
             topic2 = top2.get("topic", top2.get("title", ""))
             if topic1 and topic2 and (topic1 in topic2 or topic2 in topic1):
                 conflict_status = True
 
+    # Select the winning authoritative source
     selected = active_candidates[0]
     auth_level_sel = selected.get("authority_level", 1)
     sel_title = selected.get("title", selected.get("doc_id", "Unknown Document"))

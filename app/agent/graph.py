@@ -5,7 +5,7 @@ Connects the 9 processing nodes with conditional branching for early exits on se
 
 import time
 import uuid
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 from langgraph.graph import StateGraph, START, END
 from app.agent.state import AgentState
 from app.agent.nodes import (
@@ -83,7 +83,8 @@ def run_agent(
     question: str,
     student_id: str,
     as_of_date: str = "2026-10-06",
-    trace_id: str = None
+    trace_id: str = None,
+    top_k: Optional[int] = None
 ) -> Dict[str, Any]:
     """
     Executes the LangGraph pipeline synchronously for a user request.
@@ -99,6 +100,7 @@ def run_agent(
         "course_code": None,
         "exam_type": None,
         "student_record": None,
+        "top_k": top_k,
         "retrieved_chunks": [],
         "candidate_sources": [],
         "selected_source": None,

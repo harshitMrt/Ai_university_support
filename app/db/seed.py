@@ -103,6 +103,10 @@ def seed_database() -> Dict[str, int]:
         ("99002", "Judge Test Student Beta (Fail Case)", "B.Tech CSE", 2023, 4, 5.80, 2),
         ("99003", "Judge Test Student Gamma (Low Attendance)", "B.Tech ECE", 2022, 6, 6.20, 1),
         ("99004", "Judge Test Student Delta (High Backlogs)", "B.Tech CSE", 2021, 8, 4.90, 4),
+
+        # Synthetic Test Evaluation Students
+        ("STU001", "Aarav Sharma", "B.Tech CSE", 2023, 4, 8.50, 0),
+        ("STU002", "Rahul Verma", "B.Tech CSE", 2023, 4, 7.20, 1),
     ]
 
     cursor.executemany(
@@ -169,6 +173,12 @@ def seed_database() -> Dict[str, int]:
         ("99002", "CS201", 40, 31),   # 77.5%
         ("99003", "JDG102", 40, 27),  # 67.5%
         ("99004", "JDG101", 40, 22),  # 55.0%
+
+        # Synthetic test attendance
+        ("STU001", "CS201", 40, 34),  # 85.0%
+        ("STU001", "CS202", 40, 36),  # 90.0%
+        ("STU002", "CS201", 40, 26),  # 65.0%
+        ("STU002", "CS202", 40, 24),  # 60.0%
     ]
 
     cursor.executemany(
@@ -209,6 +219,10 @@ def seed_database() -> Dict[str, int]:
         ("99001", "JDG101", "May 2024", "REGULAR", 38.0, 55.0, 93.0, 100.0, "PASS"),
         ("99002", "CS201", "Dec 2023", "REGULAR", 15.0, 20.0, 35.0, 100.0, "FAIL"),
         ("99003", "JDG102", "May 2024", "REGULAR", 22.0, 30.0, 52.0, 100.0, "PASS"),
+
+        # Synthetic test results
+        ("STU001", "CS201", "Dec 2023", "REGULAR", 34.0, 48.0, 82.0, 100.0, "PASS"),
+        ("STU002", "CS201", "Dec 2023", "REGULAR", 14.0, 20.0, 34.0, 100.0, "FAIL"),
     ]
 
     cursor.executemany(

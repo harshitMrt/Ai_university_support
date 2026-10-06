@@ -1,0 +1,27 @@
+================================================================================
+END SEMESTER EXAMINATION RULES & GRADING SYSTEM (v2.5)
+Document ID: EXAM-REG-2024
+Authority Level: 1 (Regulations)
+Issuer: Examination Cell
+Effective Date: 2024-07-01
+Scope: All Programmes
+================================================================================
+
+SECTION 1: EXAMINATION TIMELINES AND CONDUCT
+1.1 End-semester examinations are conducted twice annually (Autumn Session in December, Spring Session in May).
+1.2 Hall Tickets: Only students who have cleared all tuition fees and satisfy the minimum 75.0% attendance threshold shall receive admit cards.
+
+SECTION 5: ASSESSMENT WEIGHTAGE AND PASSING CRITERIA
+5.1 Evaluation Components:
+- Continuous Internal Assessment (CIA): 40% (Quizzes, assignments, mid-semester test)
+- End-Semester Examination: 60%
+5.2 Passing Requirement: A student must obtain a minimum of 40.0 marks out of 100 in total (CIA + End-Sem combined). Students obtaining 39.9 marks or lower fail the course with Grade 'F'.
+5.3 Grading Scale:
+- 90 - 100: Grade O (Outstanding, Grade Point 10)
+- 80 - 89: Grade A+ (Excellent, Grade Point 9)
+- 70 - 79: Grade A (Very Good, Grade Point 8)
+- 60 - 69: Grade B+ (Good, Grade Point 7)
+- 50 - 59: Grade B (Above Average, Grade Point 6)
+- 40 - 49: Grade C (Pass, Grade Point 5)
+- Less than 40: Grade F (Fail, Grade Point 0)
+- Debarred due to Attendance: Grade AD (Debarred, Grade Point 0)

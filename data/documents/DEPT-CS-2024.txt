@@ -1,0 +1,16 @@
+================================================================================
+DEPARTMENT OF COMPUTER SCIENCE: LAB & PROJECT GUIDELINES
+Document ID: DEPT-CS-2024
+Authority Level: 3 (Department Notice)
+Issuer: Department of Computer Science & Engineering
+Effective Date: 2024-08-01
+Scope: B.Tech CSE Students
+================================================================================
+
+SECTION 1: LAB ATTENDANCE AND SUBMISSIONS
+1.1 Lab Practical Attendance: In line with departmental standards, students enrolled in CS courses (CS201, CS202, CS203) are expected to attend all scheduled laboratory sessions.
+1.2 Missed Experiments: Any experiment missed due to certified medical reasons must be performed and evaluated during the designated Make-Up Saturday sessions within 14 days.
+1.3 Hardware Safety: No food, beverages, or unauthorized USB storage media are permitted inside the computing laboratories.
+
+SECTION 2: LAB ATTENDANCE POLICY
+2.1 Practical Threshold: Students in B.Tech CSE must maintain a mandatory minimum of 80.0% practical attendance in all computer science laboratory courses.
