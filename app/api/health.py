@@ -46,8 +46,10 @@ async def check_system_health():
 
     # 2. ChromaDB check
     try:
-        indexed_chunks = get_collection_count()
-        chroma_ok = indexed_chunks > 0
+        from app.rag.retriever import get_collection
+        col = get_collection()
+        indexed_chunks = col.count()
+        chroma_ok = True
     except Exception:
         chroma_ok = False
 

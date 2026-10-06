@@ -32,11 +32,10 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         print(f"Database check/seed warning: {e}")
 
-    # Ensure ChromaDB has documents indexed
+    # Ensure ChromaDB collection is initialized
     try:
-        if get_collection_count() == 0:
-            print("Initial startup: Ingesting university documents into ChromaDB...")
-            ingest_all_documents()
+        from app.rag.retriever import get_collection
+        get_collection()
     except Exception as e:
         print(f"ChromaDB check warning: {e}")
 

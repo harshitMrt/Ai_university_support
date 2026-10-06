@@ -72,7 +72,26 @@ async def ingest_document(
     }
 
     try:
+        import pandas as pd
         ingest_res = ingest_document_file(target_path, metadata_override=meta_override)
+
+        # Update source_register.csv so newly uploaded documents appear in catalog
+        try:
+            reg_path = Path(settings.SOURCE_REGISTER_PATH)
+            if reg_path.exists() and reg_path.stat().st_size > 0:
+                df = pd.read_csv(reg_path)
+            else:
+                df = pd.DataFrame()
+
+            if not df.empty and "doc_id" in df.columns:
+                df = df[df["doc_id"] != safe_doc_id]
+
+            new_row = pd.DataFrame([ingest_res["metadata"]])
+            df = pd.concat([df, new_row], ignore_index=True)
+            df.to_csv(reg_path, index=False)
+        except Exception as reg_err:
+            pass
+
         return IngestJsonResponse(**ingest_res)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ingestion failed: {str(e)}")

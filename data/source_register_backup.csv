@@ -1,0 +1,13 @@
+doc_id,title,issuer,authority_level,doc_type,version,effective_from,effective_to,supersedes,scope_programmes,scope_batches,provenance,retrieved_on,synthetic
+ACAD-REG-2024,Academic Regulations for B.Tech Programmes v3.1,Academic Council,1,Regulation,3.1,2024-07-01,,ACAD-REG-2021,ALL,ALL,Official Academic Gazette,2026-10-06,TRUE
+ACAD-REG-2021,Academic Regulations for B.Tech Programmes v2.0 (Archived),Academic Council,1,Regulation,2.0,2021-07-01,2024-06-30,,ALL,ALL,Official Academic Gazette (Archived),2026-10-06,TRUE
+ATT-POL-2024,Comprehensive Student Attendance Policy v2.0,Office of Dean Academic Affairs,2,Policy,2.0,2024-07-01,,ATT-POL-2020,ALL,ALL,Office of Dean Academic Affairs,2026-10-06,TRUE
+EXAM-REG-2024,End Semester Examination Rules & Grading System,Examination Cell,1,Regulation,2.5,2024-07-01,,,ALL,ALL,Controller of Examinations,2026-10-06,TRUE
+SUPP-EXAM-2024,Special Supplementary Examination Ordinances,Controller of Examinations,2,Ordinance,1.8,2024-07-01,,,ALL,ALL,Examination Cell Notification Portal,2026-10-06,TRUE
+SCHOL-POL-2024,Merit and Need-Based Scholarship Regulations,University Scholarship Committee,2,Policy,1.4,2024-07-01,,,ALL,ALL,Dean Student Welfare Office,2026-10-06,TRUE
+HOSTEL-2024,Hostel Code of Conduct and Allotment Rules,Chief Warden Council,2,Rules,2.1,2024-07-01,,,ALL,ALL,Chief Warden Secretariat,2026-10-06,TRUE
+FEE-REG-2024,Tuition Fee Schedule and Refund Regulations,Finance & Accounts Committee,1,Regulation,3.0,2024-07-01,,,ALL,ALL,Bursar and Finance Division,2026-10-06,TRUE
+CAL-2024,Official Academic Calendar 2024-2025,Office of the Registrar,2,Notification,1.0,2024-07-01,2025-06-30,,ALL,ALL,Registrar Circular Portal,2026-10-06,TRUE
+HANDBOOK-2024,Student Information and Campus Life Handbook,Student Welfare Board,4,Handbook,4.0,2024-07-01,,,ALL,ALL,Student Orientation Committee,2026-10-06,TRUE
+DEPT-CS-2024,Computer Science Lab & Project Guidelines,Department of Computer Science,3,Notice,1.2,2024-08-01,,,B.Tech CSE,ALL,CSE Department Notice Board,2026-10-06,TRUE
+UNOFF-FORUM-2024,Campus Unofficial Advice and Peer FAQs,Student Peer Forum,5,Unofficial,0.9,2024-01-01,,,ALL,ALL,Student Peer Reddit/Discord,2026-10-06,TRUE

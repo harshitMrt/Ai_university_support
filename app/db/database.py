@@ -1,6 +1,7 @@
 import sqlite3
 from pathlib import Path
 from typing import Generator
+# pyrefly: ignore [missing-import]
 from app.config import settings
 from app.db.models import ALL_TABLE_SCHEMAS
 

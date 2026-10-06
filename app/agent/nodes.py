@@ -308,6 +308,61 @@ def evaluate_rules_node(state: AgentState) -> Dict[str, Any]:
     }
 
 
+QUERY_STOPWORDS = {
+    "what", "when", "where", "which", "who", "whom", "whose", "why", "how",
+    "can", "could", "would", "should", "will", "shall", "is", "are", "was",
+    "were", "be", "been", "being", "have", "has", "had", "do", "does", "did",
+    "the", "a", "an", "and", "but", "if", "or", "because", "as", "until",
+    "while", "of", "at", "by", "for", "with", "about", "against", "between",
+    "into", "through", "during", "before", "after", "above", "below", "to",
+    "from", "up", "upon", "down", "in", "out", "on", "off", "over", "under",
+    "again", "further", "then", "once", "here", "there", "all", "any", "both",
+    "each", "few", "more", "most", "other", "some", "such", "no", "nor", "not",
+    "only", "own", "same", "so", "than", "too", "very", "just", "now", "tell",
+    "give", "explain", "please", "show", "me", "my", "you", "your", "i", "we",
+    "he", "she", "they", "it", "this", "that", "these", "those", "am", "student",
+    "university", "policy", "rules", "rule", "according", "applies", "requirement",
+    "requirements", "information", "details", "say", "seniors", "forum", "college",
+    "check", "need", "want"
+}
+
+
+def verify_query_presence(question: str, chunks: List[Dict[str, Any]]) -> bool:
+    """
+    Verifies that the substantive query keywords are represented in the retrieved chunks.
+    Prevents hallucinating or returning irrelevant document chunks when the question
+    topic is absent from all university documents.
+    """
+    if not chunks:
+        return False
+
+    tokens = re.findall(r"\b[a-z0-9]{3,}\b", question.lower())
+    keywords = [t for t in tokens if t not in QUERY_STOPWORDS]
+    if not keywords:
+        return True
+
+    combined_corpus = " ".join(
+        c.get("text", "").lower() + " " +
+        c.get("metadata", {}).get("title", "").lower() + " " +
+        c.get("metadata", {}).get("section", "").lower()
+        for c in chunks
+    )
+
+    matches = 0
+    for kw in keywords:
+        if kw in combined_corpus:
+            matches += 1
+        elif len(kw) > 4 and kw[:-1] in combined_corpus:  # singular/plural
+            matches += 1
+        elif len(kw) > 5 and kw[:-3] in combined_corpus:  # stemming/gerund
+            matches += 1
+
+    ratio = matches / len(keywords)
+    if len(keywords) >= 2:
+        return ratio >= 0.50
+    return matches >= 1
+
+
 def synthesize_answer_node(state: AgentState) -> Dict[str, Any]:
     if state.get("answer_type") in ["refused", "clarification_needed"]:
         return {}
@@ -336,6 +391,14 @@ def synthesize_answer_node(state: AgentState) -> Dict[str, Any]:
         att_data = next((o["output"] for o in tool_outputs if o["tool"] == "get_attendance"), None)
 
         if elig_data:
+            reason_lower = elig_data.get("reason", "").lower()
+            if not elig_data.get("sources") and ("not found" in reason_lower or "does not exist" in reason_lower):
+                return {
+                    "answer_type": "not_found",
+                    "answer": "I could not find this information in the authorised university sources.",
+                    "citations": []
+                }
+
             eligible_str = "ELIGIBLE" if elig_data["eligible"] else "NOT ELIGIBLE"
             ans_parts = [
                 f"**Verdict:** You are **{eligible_str}** for the {elig_data.get('exam_type', 'REGULAR')} examination in **{course_code}**.",
@@ -355,6 +418,12 @@ def synthesize_answer_node(state: AgentState) -> Dict[str, Any]:
                 "answer_type": "calculated",
                 "answer": "\n".join(ans_parts)
             }
+        else:
+            return {
+                "answer_type": "not_found",
+                "answer": "I could not find this information in the authorised university sources.",
+                "citations": []
+            }
 
     # CASE B: Personal Attendance or Marks -> CALCULATED
     if intent == "student_personal":
@@ -362,7 +431,7 @@ def synthesize_answer_node(state: AgentState) -> Dict[str, Any]:
         res_data = next((o["output"] for o in tool_outputs if o["tool"] == "get_result"), None)
 
         ans_parts = []
-        if att_data and isinstance(att_data, dict):
+        if att_data and isinstance(att_data, dict) and att_data.get("found"):
             if "attendance_percentage" in att_data:
                 # Specific course
                 ans_parts.append(
@@ -406,11 +475,16 @@ def synthesize_answer_node(state: AgentState) -> Dict[str, Any]:
                 "answer": "\n\n".join(ans_parts),
                 "citations": deduplicate_citations(citations)
             }
+        else:
+            return {
+                "answer_type": "not_found",
+                "answer": "I could not find this information in the authorised university sources.",
+                "citations": []
+            }
 
     # CASE C: Factual University Policy Retrieval -> RETRIEVED_FACT
-    # Check if retrieval returned relevant chunks
     relevant_chunks = [c for c in chunks if c.get("score", 0.0) >= 0.25]
-    if not relevant_chunks:
+    if not relevant_chunks or not verify_query_presence(state["question"], relevant_chunks):
         return {
             "answer_type": "not_found",
             "answer": "I could not find this information in the authorised university sources.",
@@ -454,6 +528,14 @@ def synthesize_answer_node(state: AgentState) -> Dict[str, Any]:
     if is_valid_llm:
         ans = llm_response
     else:
+        # Before falling back to deterministic extraction, verify top_chunks actually contain query presence
+        if not verify_query_presence(state["question"], top_chunks):
+            return {
+                "answer_type": "not_found",
+                "answer": "I could not find this information in the authorised university sources.",
+                "citations": []
+            }
+
         # High quality deterministic extraction from the selected authoritative document
         top_chunk = top_chunks[0]
         meta = top_chunk["metadata"]
@@ -480,13 +562,19 @@ def validate_grounding_node(state: AgentState) -> Dict[str, Any]:
     ans_type = state.get("answer_type", "not_found")
     ans = state.get("answer", "")
 
-    # Grounding check: If answer_type is retrieved_fact but text indicates not found
-    if "could not find this information" in ans.lower():
+    # Grounding check: If answer indicates not found
+    if "could not find this information" in ans.lower() or "not found in the authorised" in ans.lower():
         ans_type = "not_found"
-
-    # Enforce strict fallback text
-    if ans_type == "not_found" and not ans:
         ans = "I could not find this information in the authorised university sources."
+
+    # Enforce strict fallback text and empty citations when not found
+    if ans_type == "not_found":
+        ans = "I could not find this information in the authorised university sources."
+        return {
+            "answer_type": "not_found",
+            "answer": ans,
+            "citations": []
+        }
 
     # Validate that citations exist for factual answers
     citations = state.get("citations", [])
