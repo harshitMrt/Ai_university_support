@@ -1,33 +1,16 @@
 """
 POST /ask endpoint implementation.
-Follows the exact contract defined in Section 19.
+Follows the exact API contract for student services assistant.
 """
 
-from typing import Any, Dict, List, Optional
-from fastapi import APIRouter, Header, HTTPException, Request
-from pydantic import BaseModel, Field
+from typing import Optional
+from fastapi import APIRouter, Header, HTTPException
 from app.agent.graph import run_agent
-from app.security.validation import validate_question_text
+from app.core.security import validate_question_text
+from app.schemas.requests import AskRequest
+from app.schemas.responses import AskResponse
 
 router = APIRouter(tags=["Student Services Assistant"])
-
-
-class AskRequest(BaseModel):
-    question: str = Field(..., description="Student's query about policies, attendance, marks, or eligibility")
-    as_of_date: Optional[str] = Field("2026-10-06", description="Effective date for evaluation (YYYY-MM-DD)")
-
-
-class AskResponse(BaseModel):
-    trace_id: str
-    answer_type: str
-    answer: str
-    citations: List[Dict[str, Any]] = []
-    tools_invoked: List[str] = []
-    applied_rules: List[Dict[str, Any]] = []
-    conflicts_detected: List[str] = []
-    policy_notes: List[str] = []
-    audit_id: str
-    latency_ms: float = 0.0
 
 
 @router.post("/ask", response_model=AskResponse)
@@ -48,7 +31,7 @@ async def ask_question(
     # Execute LangGraph pipeline
     result_state = run_agent(
         question=req.question,
-        student_id=x_student_id,
+        student_id=x_student_id.strip(),
         as_of_date=req.as_of_date or "2026-10-06"
     )
 

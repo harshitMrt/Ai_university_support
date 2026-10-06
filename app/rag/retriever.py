@@ -1,34 +1,11 @@
 """
-ChromaDB Retriever and Vector Store interface.
-Persists vectors to disk and supports semantic similarity search with metadata filtering.
+ChromaDB Retriever interface.
+Supports semantic similarity search with metadata filtering and normalized cosine scores.
 """
 
 from typing import Any, Dict, List, Optional
-import chromadb
-from chromadb.config import Settings as ChromaSettings
-from app.config import settings
 from app.rag.embeddings import embed_query
-
-COLLECTION_NAME = "university_regulations"
-_CHROMA_CLIENT = None
-
-
-def get_chroma_client() -> chromadb.PersistentClient:
-    global _CHROMA_CLIENT
-    if _CHROMA_CLIENT is None:
-        _CHROMA_CLIENT = chromadb.PersistentClient(
-            path=settings.CHROMA_PATH,
-            settings=ChromaSettings(anonymized_telemetry=False)
-        )
-    return _CHROMA_CLIENT
-
-
-def get_collection():
-    client = get_chroma_client()
-    return client.get_or_create_collection(
-        name=COLLECTION_NAME,
-        metadata={"hnsw:space": "cosine"}
-    )
+from app.rag.vector_store import get_chroma_client, get_collection, get_collection_count, COLLECTION_NAME
 
 
 def query_documents(
@@ -68,9 +45,10 @@ def query_documents(
     return chunks
 
 
-def get_collection_count() -> int:
-    try:
-        col = get_collection()
-        return col.count()
-    except Exception:
-        return 0
+__all__ = [
+    "COLLECTION_NAME",
+    "get_chroma_client",
+    "get_collection",
+    "query_documents",
+    "get_collection_count",
+]

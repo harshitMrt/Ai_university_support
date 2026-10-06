@@ -7,9 +7,10 @@ Strictly enforces:
 4. Exact grounding with citations.
 """
 
-import httpx
 from typing import Optional
-from app.config import settings
+import httpx
+from app.core.config import settings
+from app.core.logging import logger
 
 SYSTEM_GROUNDING_PROMPT = """You are the official AI-Powered University Student Services Assistant.
 Your job is to provide accurate, transparent, and strictly grounded answers to student inquiries.
@@ -33,8 +34,8 @@ def call_ollama_llm(
     timeout_seconds: float = 12.0
 ) -> Optional[str]:
     """
-    Invokes the local Ollama LLM endpoint with a short timeout and clean error handling.
-    Returns None if Ollama is unreachable or degraded.
+    Invokes the local Ollama LLM endpoint with a fast connect timeout and clean error handling.
+    Returns None if Ollama is unreachable, offline, or degraded, gracefully triggering deterministic fallback.
     """
     target_model = model or settings.OLLAMA_MODEL
     url = f"{settings.OLLAMA_BASE_URL.rstrip('/')}/api/generate"
@@ -50,13 +51,16 @@ def call_ollama_llm(
         }
     }
 
+    # Use fast connect timeout (1.0s) so unstarted Ollama fails fast without hanging the pipeline
+    timeout_cfg = httpx.Timeout(timeout_seconds, connect=settings.LLM_CONNECT_TIMEOUT_SEC)
+
     try:
-        with httpx.Client(timeout=timeout_seconds) as client:
+        with httpx.Client(timeout=timeout_cfg) as client:
             resp = client.post(url, json=payload)
             if resp.status_code == 200:
                 data = resp.json()
                 return data.get("response", "").strip()
             return None
-    except Exception:
-        # Graceful fallback: when Ollama is unavailable, return None so deterministic synthesis is used
+    except Exception as e:
+        logger.debug(f"Ollama call notice (falling back to deterministic synthesis): {e}")
         return None

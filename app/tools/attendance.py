@@ -3,33 +3,20 @@ Deterministic attendance calculation tool.
 Strictly calculates:
 attendance_percentage = (classes_attended / classes_held) * 100
 Never delegates math or calculation to the LLM.
+Retrieves data via AttendanceRepository.
 """
 
 from typing import Any, Dict, List, Optional, Union
-from app.db.database import get_connection
+from app.repositories.attendance_repository import AttendanceRepository
 
 
 def get_attendance(
     student_id: str,
     course_code: Optional[str] = None
 ) -> Union[Dict[str, Any], List[Dict[str, Any]]]:
-    conn = get_connection()
-    cursor = conn.cursor()
-
     if course_code:
-        cursor.execute(
-            """
-            SELECT a.student_id, a.course_code, c.course_name, a.classes_held, a.classes_attended
-            FROM attendance a
-            LEFT JOIN courses c ON a.course_code = c.course_code
-            WHERE a.student_id = ? AND UPPER(a.course_code) = UPPER(?)
-            """,
-            (student_id.strip(), course_code.strip())
-        )
-        row = cursor.fetchone()
-        conn.close()
-
-        if not row:
+        record = AttendanceRepository.get_course_attendance(student_id, course_code)
+        if not record:
             return {
                 "error": f"Attendance record not found for student '{student_id}' in course '{course_code}'.",
                 "student_id": student_id,
@@ -37,14 +24,14 @@ def get_attendance(
                 "found": False
             }
 
-        classes_held = int(row["classes_held"])
-        classes_attended = int(row["classes_attended"])
+        classes_held = record["classes_held"]
+        classes_attended = record["classes_attended"]
         pct = round((classes_attended / classes_held * 100.0), 2) if classes_held > 0 else 0.0
 
         return {
-            "student_id": row["student_id"],
-            "course_code": row["course_code"],
-            "course_name": row["course_name"] or "",
+            "student_id": record["student_id"],
+            "course_code": record["course_code"],
+            "course_name": record.get("course_name", ""),
             "classes_held": classes_held,
             "classes_attended": classes_attended,
             "attendance_percentage": pct,
@@ -52,20 +39,7 @@ def get_attendance(
             "found": True
         }
     else:
-        # Aggregate all courses for student
-        cursor.execute(
-            """
-            SELECT a.student_id, a.course_code, c.course_name, a.classes_held, a.classes_attended
-            FROM attendance a
-            LEFT JOIN courses c ON a.course_code = c.course_code
-            WHERE a.student_id = ?
-            ORDER BY a.course_code
-            """,
-            (student_id.strip(),)
-        )
-        rows = cursor.fetchall()
-        conn.close()
-
+        rows = AttendanceRepository.get_all_student_attendance(student_id)
         if not rows:
             return {
                 "error": f"No attendance records found for student '{student_id}'.",
@@ -79,14 +53,14 @@ def get_attendance(
         total_attended = 0
 
         for r in rows:
-            held = int(r["classes_held"])
-            att = int(r["classes_attended"])
+            held = r["classes_held"]
+            att = r["classes_attended"]
             pct = round((att / held * 100.0), 2) if held > 0 else 0.0
             total_held += held
             total_attended += att
             courses_data.append({
                 "course_code": r["course_code"],
-                "course_name": r["course_name"] or "",
+                "course_name": r.get("course_name", ""),
                 "classes_held": held,
                 "classes_attended": att,
                 "attendance_percentage": pct,

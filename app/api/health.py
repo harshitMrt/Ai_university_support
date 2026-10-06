@@ -4,25 +4,14 @@ Reports operational health across API, SQLite database, ChromaDB vector store, a
 Degrades gracefully without crashing if any dependency has issues.
 """
 
-from typing import Any, Dict
 import httpx
 from fastapi import APIRouter
-from pydantic import BaseModel
-from app.config import settings
-from app.db.database import get_connection
+from app.core.config import settings
+from app.database.connection import get_connection
 from app.rag.retriever import get_collection_count
+from app.schemas.responses import HealthResponse
 
 router = APIRouter(tags=["System Health"])
-
-
-class HealthResponse(BaseModel):
-    status: str
-    api: bool
-    database: bool
-    chromadb: bool
-    ollama: bool
-    model: str
-    indexed_chunks: int = 0
 
 
 @router.get("/health", response_model=HealthResponse)
@@ -36,11 +25,13 @@ async def check_system_health():
     # 1. Database check
     try:
         conn = get_connection()
-        cursor = conn.cursor()
-        cursor.execute("SELECT COUNT(*) FROM students;")
-        count = cursor.fetchone()[0]
-        conn.close()
-        db_ok = count > 0
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT COUNT(*) FROM students;")
+            count = cursor.fetchone()[0]
+            db_ok = count > 0
+        finally:
+            conn.close()
     except Exception:
         db_ok = False
 
@@ -53,10 +44,11 @@ async def check_system_health():
     except Exception:
         chroma_ok = False
 
-    # 3. Ollama check
+    # 3. Ollama check with fast connect timeout
     try:
         url = f"{settings.OLLAMA_BASE_URL.rstrip('/')}/api/tags"
-        with httpx.Client(timeout=2.0) as client:
+        timeout_cfg = httpx.Timeout(2.0, connect=settings.LLM_CONNECT_TIMEOUT_SEC)
+        with httpx.Client(timeout=timeout_cfg) as client:
             resp = client.get(url)
             ollama_ok = resp.status_code == 200
     except Exception:

@@ -1,23 +1,25 @@
 """
 Main FastAPI Application Entrypoint.
-Connects all API routers, middleware, and startup checks.
+Connects all API routers, middleware, startup checks, and global exception handlers.
 """
 
+import time
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from app.config import settings
+from app.core.config import settings
+from app.core.logging import logger
+from app.core.exceptions import UniversityAppException
 from app.api.ask import router as ask_router
 from app.api.ingest import router as ingest_router
 from app.api.health import router as health_router
 from app.api.audit import router as audit_router
 from app.api.sources import router as sources_router
 from app.api.student import router as student_router
-from app.db.database import init_db
+from app.database.connection import init_db
 from app.db.seed import seed_database
-from app.rag.ingest import ingest_all_documents
-from app.rag.retriever import get_collection_count
+from app.rag.retriever import get_collection
 
 
 @asynccontextmanager
@@ -25,19 +27,18 @@ async def lifespan(app: FastAPI):
     # Startup: Ensure SQLite tables exist & seed if empty
     init_db()
     try:
-        from app.tools.student import get_student
-        if not get_student("S1001"):
-            print("Initial startup: Seeding synthetic student database...")
+        from app.repositories.student_repository import StudentRepository
+        if not StudentRepository.get_by_id("S1001"):
+            logger.info("Initial startup: Seeding synthetic student database...")
             seed_database()
     except Exception as e:
-        print(f"Database check/seed warning: {e}")
+        logger.warning(f"Database check/seed warning: {e}")
 
     # Ensure ChromaDB collection is initialized
     try:
-        from app.rag.retriever import get_collection
         get_collection()
     except Exception as e:
-        print(f"ChromaDB check warning: {e}")
+        logger.warning(f"ChromaDB check warning: {e}")
 
     yield
 
@@ -58,9 +59,31 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Global error handler to never expose raw stack traces
+
+@app.middleware("http")
+async def add_process_time_header(request: Request, call_next):
+    start_time = time.time()
+    response = await call_next(request)
+    process_time = round((time.time() - start_time) * 1000.0, 2)
+    response.headers["X-Response-Time-Ms"] = str(process_time)
+    return response
+
+
+@app.exception_handler(UniversityAppException)
+async def domain_exception_handler(request: Request, exc: UniversityAppException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "error": exc.__class__.__name__,
+            "message": exc.message,
+            "detail": exc.detail
+        }
+    )
+
+
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
+    logger.error(f"Unhandled exception on {request.url.path}: {exc}", exc_info=True)
     return JSONResponse(
         status_code=500,
         content={
@@ -69,6 +92,7 @@ async def global_exception_handler(request: Request, exc: Exception):
             "detail": str(exc) if settings.LOG_LEVEL == "DEBUG" else None
         }
     )
+
 
 # Include all API routers
 app.include_router(health_router)

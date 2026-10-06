@@ -1,31 +1,19 @@
 """
 POST /ingest endpoint for live document ingestion.
 Supports immediate ingestion into ChromaDB without server restart.
-Handles multipart file uploads (PDF, TXT, DOCX, MD) or JSON payloads.
+Handles multipart file uploads (PDF, TXT, DOCX, MD) with rich metadata.
 """
 
-import shutil
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Optional
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
-from pydantic import BaseModel, Field
-from app.config import settings
+import pandas as pd
+from app.core.config import settings
+from app.core.security import validate_file_upload
 from app.rag.ingest import ingest_document_file
-from app.security.validation import validate_file_upload
+from app.schemas.responses import IngestJsonResponse
 
 router = APIRouter(tags=["Document Ingestion"])
-
-
-class IngestJsonResponse(BaseModel):
-    doc_id: str
-    title: str
-    version: str
-    authority_level: int
-    chunks_created: int
-    embedding_status: str
-    metadata: Dict[str, Any]
-    ingestion_timestamp: str
-    file_name: str
 
 
 @router.post("/ingest", response_model=IngestJsonResponse)
@@ -43,13 +31,11 @@ async def ingest_document(
     scope_batches: Optional[str] = Form("ALL"),
     issuer: Optional[str] = Form("Registrar Office")
 ):
-    # Validate file extension and read content
     content = await file.read()
     is_valid, err_msg = validate_file_upload(file.filename, len(content))
     if not is_valid:
         raise HTTPException(status_code=400, detail=err_msg)
 
-    # Save to documents directory
     safe_doc_id = (doc_id or Path(file.filename).stem).strip()
     target_path = settings.DOCUMENTS_DIR / f"{safe_doc_id}{Path(file.filename).suffix.lower()}"
 
@@ -72,7 +58,6 @@ async def ingest_document(
     }
 
     try:
-        import pandas as pd
         ingest_res = ingest_document_file(target_path, metadata_override=meta_override)
 
         # Update source_register.csv so newly uploaded documents appear in catalog
@@ -89,7 +74,7 @@ async def ingest_document(
             new_row = pd.DataFrame([ingest_res["metadata"]])
             df = pd.concat([df, new_row], ignore_index=True)
             df.to_csv(reg_path, index=False)
-        except Exception as reg_err:
+        except Exception:
             pass
 
         return IngestJsonResponse(**ingest_res)

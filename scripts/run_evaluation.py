@@ -174,7 +174,12 @@ def run_benchmark() -> Tuple[Dict[str, float], pd.DataFrame]:
 
 
 def print_evaluation_report(metrics: Dict[str, float], df_results: pd.DataFrame):
-    print("\n" + tabulate(df_results, headers="keys", tablefmt="fancy_grid", showindex=False))
+    try:
+        if sys.stdout.encoding and sys.stdout.encoding.lower() not in ("utf-8", "utf8"):
+            sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+    print("\n" + tabulate(df_results, headers="keys", tablefmt="grid", showindex=False))
     print("\n================================================================================")
     print("                      BENCHMARK EVALUATION SUMMARY                              ")
     print("================================================================================")

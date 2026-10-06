@@ -1,6 +1,7 @@
 """
-Re-export of authoritative source precedence from src.rules.source_precedence.
+Authoritative source precedence service re-export.
 """
-from src.rules.source_precedence import resolve_authoritative_sources, parse_date
+
+from app.services.source_resolution import resolve_authoritative_sources, parse_date
 
 __all__ = ["resolve_authoritative_sources", "parse_date"]
