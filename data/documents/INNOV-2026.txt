@@ -1,0 +1,3 @@
+SECTION 1: TEST INGESTION
+This is a newly ingested policy for Dean Innovation Awards.
+Students winning first prize get Rs 25000 prize grant.

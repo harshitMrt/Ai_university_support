@@ -1,0 +1,21 @@
+================================================================================
+MERIT AND NEED-BASED SCHOLARSHIP REGULATIONS (v1.4)
+Document ID: SCHOL-POL-2024
+Authority Level: 2 (Official Circulars / Policies)
+Issuer: University Scholarship Committee
+Effective Date: 2024-07-01
+Scope: All Full-Time Students
+================================================================================
+
+SECTION 1: SCHOLARSHIP SCHEMES
+1.1 The University confers University Merit Scholarships and Need-cum-Merit Financial Aid on an annual renewal basis.
+
+SECTION 3: ELIGIBILITY CONDITIONS FOR MERIT SCHOLARSHIP
+3.1 Minimum Academic Standing (CGPA): The applicant must maintain a minimum Cumulative Grade Point Average (CGPA) of 8.50 out of 10.00 at the end of the academic year.
+3.2 Backlog Discipline: The applicant must have zero (0) active or past uncleared backlogs. Any student with active_backlogs > 0 is disqualified from scholarship awards.
+3.3 Attendance Requirement: A minimum overall attendance of 85.0% across all enrolled subjects in the preceding academic year is mandatory.
+
+SECTION 4: AWARD QUANTUM AND RENEWAL
+4.1 Tier 1 (CGPA >= 9.00): 50% waiver on tuition fees.
+4.2 Tier 2 (CGPA 8.50 - 8.99): 25% waiver on tuition fees.
+4.3 Application Deadline: August 31 of each academic year submitted to the Dean of Student Welfare.

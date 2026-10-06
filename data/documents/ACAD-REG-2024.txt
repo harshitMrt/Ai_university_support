@@ -1,0 +1,35 @@
+================================================================================
+ACADEMIC REGULATIONS FOR B.TECH PROGRAMMES (v3.1)
+Document ID: ACAD-REG-2024
+Authority Level: 1 (Academic Regulations / Statutes)
+Issuer: Academic Council
+Effective Date: 2024-07-01
+Supersedes: ACAD-REG-2021
+Scope: B.Tech Programmes (All Batches)
+================================================================================
+
+SECTION 1: SHORT TITLE AND COMMENCEMENT
+1.1 These regulations shall be designated as the Academic Regulations for Undergraduate Engineering Programmes (B.Tech), Version 3.1.
+1.2 These regulations come into force with effect from July 1, 2024, and supersede all previous versions including Version 2.0 (ACAD-REG-2021).
+
+SECTION 2: DEFINITIONS AND CURRICULAR STRUCTURE
+2.1 'Course' means a unit of study in a semester having defined credits, contact hours, and syllabus.
+2.2 'CGPA' refers to Cumulative Grade Point Average calculated on a 10-point scale across all completed semesters.
+2.3 'Active Backlog' denotes any registered course in which a student has failed (Grade 'F') or was debarred (Grade 'AD') and has not yet cleared.
+
+SECTION 4: ATTENDANCE REQUIREMENTS
+4.1 Minimum Attendance: Every registered student is mandatory required to maintain a minimum attendance of 75.0% in every course (theory, practical, and integrated) to be eligible to appear for the end-semester examinations.
+4.2 Calculation: Attendance percentage is strictly computed as: (Total Classes Attended / Total Classes Held) * 100.
+4.3 Shortage and Debarment: Any student securing less than 75.0% attendance in a course shall be categorized as 'Attendance Debarred' (Grade 'AD'). Debarred students are strictly prohibited from writing the end-semester examination in that course and shall not be eligible for immediate supplementary examinations.
+4.4 Condonation on Medical Grounds: The Dean of Academic Affairs may consider condonation of attendance shortage up to a maximum of 10% (i.e., minimum 65.0% physical attendance required) exclusively on genuine medical hospitalization or severe illness grounds, supported by verified medical records submitted within 7 working days of recovery.
+
+SECTION 7: SUPPLEMENTARY EXAMINATIONS
+7.1 Eligibility: A student who has appeared in the regular end-semester examination and secured an 'F' grade is eligible to appear for the supplementary examination.
+7.2 Pre-requisite Requirements:
+(a) The student must have satisfied the minimum attendance requirement of 75.0% during the regular semester.
+(b) The student must not have more than 2 active backlogs across all previous semesters at the time of supplementary exam registration.
+7.3 Debarred Ineligibility: Students who were debarred due to attendance shortage (<75.0%) cannot register for supplementary exams and must repeat the course during summer term or regular semester.
+
+SECTION 8: PASSING CRITERIA AND GRADING
+8.1 Passing Requirement: To pass a course, a candidate must obtain at least 40.0% marks in aggregate (internal assessment + external end-semester examination combined).
+8.2 Failure: A candidate obtaining less than 40.0% total marks shall be awarded an 'F' grade and recorded as a backlog.
